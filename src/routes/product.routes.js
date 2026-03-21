@@ -13,4 +13,8 @@ router.get("/", productController.getProducts);
 
 router.get("/best-seller", productController.getBestSellerProducts);
 
+router.get("/:id", productController.getProductById);
+
+router.delete("/:id", productController.deleteProduct);
+
 module.exports = router;

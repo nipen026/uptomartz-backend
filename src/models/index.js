@@ -6,6 +6,7 @@ const Product = require("./product.model")
 const Cart = require("./cart.model")
 const Order = require("./order.model")
 const OrderItem = require("./orderItem.model")
+const Address = require("./address.model")
 
 // CATEGORY -> PRODUCTS
 Category.hasMany(Product)
@@ -29,6 +30,10 @@ OrderItem.belongsTo(Order)
 Product.hasMany(OrderItem)
 OrderItem.belongsTo(Product)
 
+// USER -> ADDRESS
+User.hasMany(Address)
+Address.belongsTo(User)
+
 module.exports = {
  sequelize,
  User,
@@ -36,5 +41,6 @@ module.exports = {
  Product,
  Cart,
  Order,
- OrderItem
+ OrderItem,
+ Address
 }

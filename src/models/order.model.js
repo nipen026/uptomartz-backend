@@ -21,6 +21,23 @@ const Order = sequelize.define("Order", {
 
  paymentMethod:{
    type:DataTypes.STRING
+ },
+
+ razorpayOrderId:{
+   type:DataTypes.STRING
+ },
+
+ razorpayPaymentId:{
+   type:DataTypes.STRING
+ },
+
+ razorpaySignature:{
+   type:DataTypes.STRING
+ },
+
+ paymentStatus:{
+   type:DataTypes.STRING,
+   defaultValue:"pending"
  }
 
 })

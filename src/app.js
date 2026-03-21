@@ -13,6 +13,8 @@ const categoryRoutes = require("./routes/category.routes");
 const cartRoutes = require("./routes/cart.routes");
 const orderRoutes = require("./routes/order.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const paymentRoutes = require("./routes/payment.routes");
+const addressRoutes = require("./routes/address.routes");
 
 // const errorHandler = require("./middlewares/error.middleware");
 
@@ -54,6 +56,10 @@ app.use("/api/orders", orderRoutes);
 
 app.use("/api/dashboard", dashboardRoutes);
 
+app.use("/api/payment", paymentRoutes);
+
+app.use("/api/addresses", addressRoutes);
+
 
 
 /* ---------------- HEALTH CHECK ---------------- */
@@ -72,15 +78,4 @@ app.get("/", (req, res) => {
 
 
 
-/* ---------------- DATABASE ---------------- */
-
-const PORT = process.env.PORT || 5000;
-
-sequelize.sync().then(() => {
-  console.log("Database connected");
-
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-
-});
+module.exports = app;

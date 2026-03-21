@@ -1,13 +1,11 @@
+const { Op } = require("sequelize");
 const { Product, Category } = require("../models");
 
 exports.createProduct = async (req, res) => {
-
   try {
-
-    const { name, price, stock, CategoryId, isBestSeller } = req.body;
+    const { name, price, stock, CategoryId, isBestSeller, description } = req.body;
 
     let imagePath = null;
-
     if (req.file) {
       imagePath = `/uploads/products/${req.file.filename}`;
     }
@@ -16,34 +14,69 @@ exports.createProduct = async (req, res) => {
       name,
       price,
       stock,
+      description,
       CategoryId,
       isBestSeller,
       image: imagePath
     });
 
     res.json(product);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
 exports.getProducts = async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    const where = {};
 
-  const products = await Product.findAll({
-    include: Category
-  });
+    if (category) where.CategoryId = category;
+    if (search) {
+      where.name = { [Op.iLike]: `%${search}%` };
+    }
 
-  res.json(products);
+    const products = await Product.findAll({
+      where,
+      include: Category
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
+exports.getProductById = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id, {
+      include: Category
+    });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 exports.getBestSellerProducts = async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      where: { isBestSeller: true },
+      include: Category
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-  const products = await Product.findAll({
-    where: { isBestSeller: true }
-  });
-
-  res.json(products);
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    await product.destroy();
+    res.json({ message: "Product deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
