@@ -7,6 +7,7 @@ const Cart = require("./cart.model")
 const Order = require("./order.model")
 const OrderItem = require("./orderItem.model")
 const Address = require("./address.model")
+const Coupon = require("./coupon.model")
 
 // CATEGORY -> PRODUCTS
 Category.hasMany(Product)
@@ -42,5 +43,6 @@ module.exports = {
  Cart,
  Order,
  OrderItem,
- Address
+ Address,
+ Coupon,
 }

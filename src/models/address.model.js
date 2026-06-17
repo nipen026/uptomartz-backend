@@ -33,9 +33,9 @@ const Address = sequelize.define("Address", {
     allowNull: false,
   },
 
-  pincode: {
+  district: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
 
   isDefault: {

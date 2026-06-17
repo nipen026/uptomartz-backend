@@ -15,6 +15,8 @@ const orderRoutes = require("./routes/order.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const addressRoutes = require("./routes/address.routes");
+const userRoutes = require("./routes/user.routes");
+const couponRoutes = require("./routes/coupon.routes");
 
 // const errorHandler = require("./middlewares/error.middleware");
 
@@ -59,6 +61,8 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/payment", paymentRoutes);
 
 app.use("/api/addresses", addressRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/coupons", couponRoutes);
 
 
 

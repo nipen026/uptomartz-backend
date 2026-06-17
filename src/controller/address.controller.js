@@ -14,13 +14,12 @@ exports.getAddresses = async (req, res) => {
 
 exports.createAddress = async (req, res) => {
   try {
-    const { label, name, phone, address, city, pincode, isDefault } = req.body;
+    const { label, name, phone, address, city, district, isDefault } = req.body;
 
-    if (!label || !name || !phone || !address || !city || !pincode) {
+    if (!label || !name || !phone || !address || !city || !district) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // If this is set as default, unset other defaults
     if (isDefault) {
       await Address.update(
         { isDefault: false },
@@ -35,7 +34,7 @@ exports.createAddress = async (req, res) => {
       phone,
       address,
       city,
-      pincode,
+      district,
       isDefault: isDefault || false,
     });
 
@@ -52,7 +51,7 @@ exports.updateAddress = async (req, res) => {
     });
     if (!addr) return res.status(404).json({ message: "Address not found" });
 
-    const { label, name, phone, address, city, pincode, isDefault } = req.body;
+    const { label, name, phone, address, city, district, isDefault } = req.body;
 
     if (isDefault) {
       await Address.update(
@@ -66,7 +65,7 @@ exports.updateAddress = async (req, res) => {
     if (phone) addr.phone = phone;
     if (address) addr.address = address;
     if (city) addr.city = city;
-    if (pincode) addr.pincode = pincode;
+    if (district) addr.district = district;
     if (isDefault !== undefined) addr.isDefault = isDefault;
 
     await addr.save();

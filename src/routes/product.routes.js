@@ -15,6 +15,8 @@ router.get("/best-seller", productController.getBestSellerProducts);
 
 router.get("/:id", productController.getProductById);
 
+router.put("/:id", upload.single("image"), productController.updateProduct);
+
 router.delete("/:id", productController.deleteProduct);
 
 module.exports = router;

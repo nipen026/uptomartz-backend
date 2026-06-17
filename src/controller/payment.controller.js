@@ -1,13 +1,6 @@
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { Order, Cart, OrderItem, Product } = require("../models");
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
-// Create Razorpay order + our DB order from cart
 exports.createPaymentOrder = async (req, res) => {
   try {
     const cartItems = await Cart.findAll({
@@ -24,22 +17,22 @@ exports.createPaymentOrder = async (req, res) => {
       total += item.quantity * item.Product.price;
     });
 
-    // amount in paise
-    const amountInPaise = Math.round(total * 100);
+    // HKD amount in cents (smallest unit)
+    const amountInCents = Math.round(total * 100);
 
-    const razorpayOrder = await razorpay.orders.create({
-      amount: amountInPaise,
-      currency: "INR",
-      receipt: `order_${Date.now()}`,
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: "hkd",
+      automatic_payment_methods: { enabled: true },
+      metadata: { userId: req.user.id.toString() },
     });
 
-    // Create our DB order with pending payment
     const order = await Order.create({
       UserId: req.user.id,
       total,
       paymentMethod: "online",
       status: "pending",
-      razorpayOrderId: razorpayOrder.id,
+      stripePaymentIntentId: paymentIntent.id,
       paymentStatus: "pending",
     });
 
@@ -53,11 +46,8 @@ exports.createPaymentOrder = async (req, res) => {
     }
 
     res.json({
+      clientSecret: paymentIntent.client_secret,
       orderId: order.id,
-      razorpayOrderId: razorpayOrder.id,
-      amount: amountInPaise,
-      currency: "INR",
-      key: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error("Payment order error:", error);
@@ -65,38 +55,28 @@ exports.createPaymentOrder = async (req, res) => {
   }
 };
 
-// Verify payment signature + finalize order
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    const { paymentIntentId, orderId } = req.body;
 
-    // Verify signature
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body)
-      .digest("hex");
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    if (expectedSignature !== razorpay_signature) {
-      // Mark order as failed
+    if (paymentIntent.status !== "succeeded") {
       await Order.update(
         { paymentStatus: "failed", status: "cancelled" },
         { where: { id: orderId } }
       );
-      return res.status(400).json({ message: "Payment verification failed" });
+      return res.status(400).json({ message: "Payment not completed" });
     }
 
-    // Payment verified - update order
     const order = await Order.findByPk(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    order.razorpayPaymentId = razorpay_payment_id;
-    order.razorpaySignature = razorpay_signature;
+    order.stripePaymentId = paymentIntentId;
     order.paymentStatus = "paid";
     order.status = "confirmed";
     await order.save();
 
-    // Clear user's cart
     await Cart.destroy({ where: { UserId: req.user.id } });
 
     const fullOrder = await Order.findByPk(orderId, {

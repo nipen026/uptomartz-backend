@@ -70,6 +70,33 @@ exports.getBestSellerProducts = async (req, res) => {
   }
 };
 
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findByPk(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const { name, price, stock, description, CategoryId, isBestSeller } = req.body;
+
+    if (name !== undefined) product.name = name;
+    if (price !== undefined) product.price = parseFloat(price);
+    if (stock !== undefined) product.stock = parseInt(stock);
+    if (description !== undefined) product.description = description;
+    if (CategoryId !== undefined) product.CategoryId = CategoryId || null;
+    if (isBestSeller !== undefined) {
+      product.isBestSeller = isBestSeller === "true" || isBestSeller === true;
+    }
+    if (req.file) {
+      product.image = `/uploads/products/${req.file.filename}`;
+    }
+
+    await product.save();
+    const updated = await Product.findByPk(product.id, { include: Category });
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);

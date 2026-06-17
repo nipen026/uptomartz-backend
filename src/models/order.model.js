@@ -23,15 +23,11 @@ const Order = sequelize.define("Order", {
    type:DataTypes.STRING
  },
 
- razorpayOrderId:{
+ stripePaymentIntentId:{
    type:DataTypes.STRING
  },
 
- razorpayPaymentId:{
-   type:DataTypes.STRING
- },
-
- razorpaySignature:{
+ stripePaymentId:{
    type:DataTypes.STRING
  },
 
